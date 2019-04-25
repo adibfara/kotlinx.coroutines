@@ -1,0 +1,5 @@
+This package contains reactive scrabble benchmarks.
+
+Reactive Scrabble benchmarks were originally developed by José Paumard and are available under Apache 2.0 (https://github.com/JosePaumard/jdk8-stream-rx-comparison-reloaded),
+Flow version is adaptation of this work.
+All Rx and Reactive benchmarks are based on (or copied from) David Karnok work: https://github.com/akarnokd/akarnokd-misc

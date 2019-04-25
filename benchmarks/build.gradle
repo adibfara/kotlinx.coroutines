@@ -1,6 +1,8 @@
 /*
  * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 apply plugin: "net.ltgt.apt"
 apply plugin: "com.github.johnrengelman.shadow"
@@ -10,15 +12,24 @@ repositories {
     maven { url "https://repo.typesafe.com/typesafe/releases/" }
 }
 
-jmh.jmhVersion = '1.21'
+compileJmhKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += ['-Xjvm-default=enable']
+    }
+}
 
 // It is better to use the following to run benchmarks, otherwise you may get unexpected errors:
-// ../gradlew --no-daemon cleanJmhJar jmh
+// ./gradlew --no-daemon cleanJmhJar jmh -Pjmh="MyBenchmark"
 jmh {
+    jmhVersion = '1.21'
     duplicateClassesStrategy DuplicatesStrategy.INCLUDE
     failOnError = true
     resultFormat = 'CSV'
-//    include = ['.*ChannelProducerConsumer.*']
+    if (project.hasProperty('jmh')) {
+        include = ".*" + project.jmh + ".*"
+    }
+//    includeTests = false
 }
 
 jmhJar {
@@ -30,7 +41,11 @@ jmhJar {
 
 dependencies {
     compile "org.openjdk.jmh:jmh-core:1.21"
+    compile "io.projectreactor:reactor-core:$reactor_vesion"
+    compile 'io.reactivex.rxjava2:rxjava:2.1.9'
+
+    compile "org.openjdk.jmh:jmh-core:1.21"
     compile 'com.typesafe.akka:akka-actor_2.12:2.5.0'
     compile project(':kotlinx-coroutines-core')
+//    testCompile project(":benchmarks").sourceSets.jmh.output
 }
-
