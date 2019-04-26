@@ -19,7 +19,6 @@ import kotlin.jvm.*
 @FlowPreview
 public suspend fun <S, T : S> Flow<T>.reduce(operation: suspend (accumulator: S, value: T) -> S): S {
     var accumulator: Any? = NullSurrogate
-
     collect { value ->
         accumulator = if (accumulator !== NullSurrogate) {
             @Suppress("UNCHECKED_CAST")

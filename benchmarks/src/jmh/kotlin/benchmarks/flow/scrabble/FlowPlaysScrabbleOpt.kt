@@ -4,6 +4,7 @@
 
 package benchmarks.flow.scrabble
 
+import io.reactivex.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.openjdk.jmh.annotations.*
@@ -24,20 +25,28 @@ open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
     public override fun play(): List<Map.Entry<Int, List<String>>> {
         val toIntegerStream = { string: String -> string.chars().asFlow() }
 
+        val histoCache = HashMap<String, Flow<Map<Int, MutableLong>>>()
         val histoOfLetters = { word: String ->
-            val f: suspend () -> Map<Int, MutableLong> = {
-                toIntegerStream(word).fold(HashMap()) { accumulator, value ->
-                    var newValue: MutableLong? = accumulator[value]
-                    if (newValue == null) {
-                        newValue = MutableLong()
-                        accumulator[value] = newValue
+            var result = histoCache[word]
+            if (result == null) {
+                val f = flow<Map<Int, MutableLong>> {
+                    val r = toIntegerStream(word).fold(HashMap<Int, MutableLong>()) { accumulator, value ->
+                        var newValue: MutableLong? = accumulator[value]
+                        if (newValue == null) {
+                            newValue = MutableLong()
+                            accumulator[value] = newValue
+                        }
+                        newValue.incAndSet()
+                        accumulator
                     }
-                    newValue.incAndSet()
-                    accumulator
-                }
-            }
 
-            f.asFlow()
+                    emit(r)
+                }
+
+                result = f
+                histoCache[word] = result
+            }
+            result!!
         }
 
         val blank = { entry: Map.Entry<Int, MutableLong> ->
@@ -45,13 +54,13 @@ open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
         }
 
         val nBlanks = { word: String ->
-            val f: suspend () -> Long = {
-                histoOfLetters(word)
+            flow {
+                val r = histoOfLetters(word)
                     .flatMapConcatIterable { it.entries }
                     .map({ blank(it) })
                     .sum()
+                emit(r)
             }
-            f.asFlow()
         }
 
         val checkBlanks = { word: String ->
@@ -66,42 +75,37 @@ open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
         }
 
         val score2 =  { word: String ->
-            val f: suspend () -> Int = {
-                (histoOfLetters(word)
+            flow {
+                emit((histoOfLetters(word)
                     .flatMapConcatIterable { it.entries }
                     .map { letterScore(it) }
-                    .sum())
+                    .sum()))
             }
-
-            f.asFlow()
         }
 
         val first3 = { word: String -> word.asFlow(endIndex = 3) }
         val last3 = { word: String -> word.asFlow(startIndex = 3) }
         val toBeMaxed = { word: String -> concat(first3(word), last3(word)) }
 
-
         // Bonus for double letter
         val bonusForDoubleLetter = { word: String ->
-            val f: suspend () -> Int = {
-                toBeMaxed(word)
+           flow {
+                emit(toBeMaxed(word)
                     .map { letterScores[it.toInt() - 'a'.toInt()] }
-                    .max()
+                    .max())
             }
-            f.asFlow()
         }
 
         val score3 = { word: String ->
-            val f: suspend () -> Int = {
+            flow {
                 val sum = score2(word).single() + bonusForDoubleLetter(word).single()
-                sum * 2 + if (word.length == 7) 50 else 0
+                emit(sum * 2 + if (word.length == 7) 50 else 0)
             }
-            f.asFlow()
         }
 
         val buildHistoOnScore: (((String) -> Flow<Int>) -> Flow<TreeMap<Int, List<String>>>) = { score ->
-            val f: suspend () -> TreeMap<Int, List<String>> = {
-                shakespeareWords.iterator().asFlow()
+            flow {
+                val r = shakespeareWords.iterator().asFlow()
                     .filter({ scrabbleWords.contains(it) && checkBlanks(it).single() })
                     .fold(TreeMap<Int, List<String>>(Collections.reverseOrder())) { acc, value ->
                         val key = score(value).single()
@@ -113,9 +117,8 @@ open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
                         list.add(value)
                         acc
                     }
+                emit(r)
             }
-
-            f.asFlow()
         }
 
         return runBlocking {
@@ -125,11 +128,20 @@ open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
                 .toList()
         }
     }
-}
 
+    // Default flow that is
+    private inline fun <T> flow(@BuilderInference crossinline block: suspend FlowCollector<T>.() -> Unit): Flow<T> {
+        return object : Flow<T> {
+            override suspend fun collect(collector: FlowCollector<T>) {
+                collector.block()
+            }
+        }
+    }
+}
 
 public suspend fun Flow<Int>.sum(): Int {
     val collector = object : FlowCollector<Int> {
+        @JvmField
         public var sum = 0
 
         override suspend fun emit(value: Int) {
@@ -142,6 +154,7 @@ public suspend fun Flow<Int>.sum(): Int {
 
 public suspend fun Flow<Int>.max(): Int {
     val collector = object : FlowCollector<Int> {
+        @JvmField
         public var max = 0
 
         override suspend fun emit(value: Int) {
@@ -155,6 +168,7 @@ public suspend fun Flow<Int>.max(): Int {
 @JvmName("longSum")
 public suspend fun Flow<Long>.sum(): Long {
     val collector = object : FlowCollector<Long> {
+        @JvmField
         public var sum = 0L
 
         override suspend fun emit(value: Long) {
@@ -197,14 +211,5 @@ public fun IntStream.asFlow(): Flow<Int> = flow {
     val iterator = Spliterators.iterator(spliterator())
     while (iterator.hasNext()) {
         emit(iterator.next())
-    }
-}
-
-// Default flow that is
-public inline fun <T> flow(@BuilderInference crossinline block: suspend FlowCollector<T>.() -> Unit): Flow<T> {
-    return object : Flow<T> {
-        override suspend fun collect(collector: FlowCollector<T>) {
-            collector.block()
-        }
     }
 }

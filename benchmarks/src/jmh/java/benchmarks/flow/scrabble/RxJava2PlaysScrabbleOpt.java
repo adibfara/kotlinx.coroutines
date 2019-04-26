@@ -4,15 +4,16 @@
 
 package benchmarks.flow.scrabble;
 
+import benchmarks.flow.scrabble.optimizations.StringFlowable;
+import hu.akarnokd.rxjava2.math.MathFlowable;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
+import org.openjdk.jmh.annotations.*;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-
-import hu.akarnokd.rxjava2.math.MathFlowable;
-import org.openjdk.jmh.annotations.*;
-import benchmarks.flow.scrabble.optimizations.*;
-import io.reactivex.*;
-import io.reactivex.functions.Function;
 
 /**
  * Shakespeare plays Scrabble with RxJava 2 Flowable optimized.
@@ -40,61 +41,46 @@ public class RxJava2PlaysScrabbleOpt extends ShakespearePlaysScrabble {
 
         // score of the same letters in a word
         Function<Entry<Integer, MutableLong>, Integer> letterScore =
-                entry ->
-                        letterScores[entry.getKey() - 'a'] *
-                        Integer.min(
-                                (int)entry.getValue().get(),
-                                scrabbleAvailableLetters[entry.getKey() - 'a']
-                            )
-                    ;
+                entry -> letterScores[entry.getKey() - 'a'] * Integer.min((int) entry.getValue().get(), scrabbleAvailableLetters[entry.getKey() - 'a']);
 
 
-        Function<String, Flowable<Integer>> toIntegerFlowable =
-                string -> chars(string);
+        Function<String, Flowable<Integer>> toIntegerFlowable = string -> chars(string);
 
         Map<String, Single<HashMap<Integer, MutableLong>>> histoCache = new HashMap<>();
         // Histogram of the letters in a given word
         Function<String, Single<HashMap<Integer, MutableLong>>> histoOfLetters =
-                word -> { Single<HashMap<Integer, MutableLong>> s = histoCache.get(word);
-                        if (s == null) {
-                            s = toIntegerFlowable.apply(word)
-                            .collect(
-                                () -> new HashMap<>(),
-                                (HashMap<Integer, MutableLong> map, Integer value) ->
-                                    {
-                                        MutableLong newValue = map.get(value) ;
-                                        if (newValue == null) {
-                                            newValue = new MutableLong();
-                                            map.put(value, newValue);
+                word -> {
+                    Single<HashMap<Integer, MutableLong>> s = histoCache.get(word);
+                    if (s == null) {
+                        s = toIntegerFlowable.apply(word)
+                                .collect(
+                                        () -> new HashMap<>(),
+                                        (HashMap<Integer, MutableLong> map, Integer value) ->
+                                        {
+                                            MutableLong newValue = map.get(value);
+                                            if (newValue == null) {
+                                                newValue = new MutableLong();
+                                                map.put(value, newValue);
+                                            }
+                                            newValue.incAndSet();
                                         }
-                                        newValue.incAndSet();
-                                    }
 
-                            );
-                            histoCache.put(word, s);
-                        }
-                        return s;
-                        };
+                                );
+                        histoCache.put(word, s);
+                    }
+                    return s;
+                };
 
         // number of blanks for a given letter
         Function<Entry<Integer, MutableLong>, Long> blank =
-                entry ->
-                        Long.max(
-                            0L,
-                            entry.getValue().get() -
-                            scrabbleAvailableLetters[entry.getKey() - 'a']
-                        )
-                    ;
+                entry -> Long.max(0L,
+                        entry.getValue().get() - scrabbleAvailableLetters[entry.getKey() - 'a']);
 
         // number of blanks for a given word
         Function<String, Flowable<Long>> nBlanks =
                 word -> MathFlowable.sumLong(
-                            histoOfLetters.apply(word).flattenAsFlowable(
-                                    map -> map.entrySet()
-                            )
-                            .map(blank)
-                        )
-                    ;
+                            histoOfLetters.apply(word).flattenAsFlowable(map -> map.entrySet())
+                            .map(blank));
 
 
         // can a word be written with 2 blanks?
@@ -104,12 +90,8 @@ public class RxJava2PlaysScrabbleOpt extends ShakespearePlaysScrabble {
 
         // score taking blanks into account letterScore1
         Function<String, Flowable<Integer>> score2 =
-                word -> MathFlowable.sumInt(
-                            histoOfLetters.apply(word).flattenAsFlowable(
-                                map -> map.entrySet()
-                            )
-                            .map(letterScore)
-                            ) ;
+                word -> MathFlowable.sumInt(histoOfLetters.apply(word)
+                        .flattenAsFlowable(map -> map.entrySet()).map(letterScore)) ;
 
         // Placing the word on the board
         // Building the streams of first and last letters
@@ -127,26 +109,13 @@ public class RxJava2PlaysScrabbleOpt extends ShakespearePlaysScrabble {
         // Bonus for double letter
         Function<String, Flowable<Integer>> bonusForDoubleLetter =
             word -> MathFlowable.max(toBeMaxed.apply(word)
-                        .map(scoreOfALetter)
-                        ) ;
+                        .map(scoreOfALetter));
 
         // score of the word put on the board
         Function<String, Flowable<Integer>> score3 =
-            word ->
-//                MathFlowable.sumInt(Flowable.concat(
-//                        score2.apply(word).map(v -> v * 2),
-//                        bonusForDoubleLetter.apply(word).map(v -> v * 2),
-//                        Flowable.just(word.length() == 7 ? 50 : 0)
-//                  ));
-                MathFlowable.sumInt(Flowable.concat(
+            word -> MathFlowable.sumInt(Flowable.concat(
                     score2.apply(word),
-                    bonusForDoubleLetter.apply(word)
-                )).map(v -> v * 2 + (word.length() == 7 ? 50 : 0))
-//                new FlowableSumIntArray<Integer>(
-//                        score2.apply(word),
-//                        bonusForDoubleLetter.apply(word)
-//                ).map(v -> 2 * v + (word.length() == 7 ? 50 : 0))
-                ;
+                    bonusForDoubleLetter.apply(word)));
 
         Function<Function<String, Flowable<Integer>>, Single<TreeMap<Integer, List<String>>>> buildHistoOnScore =
                 score -> Flowable.fromIterable(shakespeareWords)
