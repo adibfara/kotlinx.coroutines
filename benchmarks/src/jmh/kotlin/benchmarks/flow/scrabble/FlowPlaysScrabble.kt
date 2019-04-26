@@ -20,7 +20,7 @@ import java.util.concurrent.*
 open class FlowPlaysScrabbleBase : ShakespearePlaysScrabble() {
 
     @Benchmark
-    public fun play(): List<Map.Entry<Int, List<String>>> {
+    public override fun play(): List<Map.Entry<Int, List<String>>> {
         val scoreOfALetter = { letter: Int -> flowOf(letterScores[letter - 'a'.toInt()]) }
 
         val letterScore = { entry: Map.Entry<Int, LongWrapper> ->

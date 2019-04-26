@@ -21,7 +21,7 @@ import java.util.stream.*
 open class FlowPlaysScrabbleOpt : ShakespearePlaysScrabble() {
 
     @Benchmark
-    public fun play(): List<Map.Entry<Int, List<String>>> {
+    public override fun play(): List<Map.Entry<Int, List<String>>> {
         val toIntegerStream = { string: String -> string.chars().asFlow() }
 
         val histoOfLetters = { word: String ->

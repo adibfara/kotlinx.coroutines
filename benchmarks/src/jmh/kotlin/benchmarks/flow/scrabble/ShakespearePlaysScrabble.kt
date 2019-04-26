@@ -6,10 +6,13 @@ package benchmarks.flow.scrabble
 
 import org.openjdk.jmh.annotations.*
 import java.io.*
+import java.lang.Exception
 import java.util.stream.*
 
 @State(Scope.Benchmark)
-open class ShakespearePlaysScrabble {
+abstract class ShakespearePlaysScrabble {
+    @Throws(Exception::class)
+    abstract fun play(): List<Map.Entry<Int, List<String>>>
 
     public class MutableLong {
         var value: Long = 0
@@ -71,5 +74,15 @@ open class ShakespearePlaysScrabble {
     public val shakespeareWords: Set<String> =
         BufferedReader(InputStreamReader(this.javaClass.classLoader.getResourceAsStream("words.shakespeare.txt"))).lines()
             .map { it.toLowerCase() }.collect(Collectors.toSet())
+
+    init {
+        val expected = listOf(120 to listOf("jezebel", "quickly"),
+            118 to listOf("zephyrs"), 116 to listOf("equinox"))
+        val actual = play().map { it.key to it.value }
+        if (expected != actual) {
+            error("Incorrect benchmark, output: $actual")
+        }
+    }
+
 
 }

@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class RxJava2PlaysScrabble extends ShakespearePlaysScrabble {
 
     @Benchmark
+    @Override
     public List<Entry<Integer, List<String>>> play() throws Exception {
 
         // Function to compute the score of a given word
@@ -138,7 +139,7 @@ public class RxJava2PlaysScrabble extends ShakespearePlaysScrabble {
                                 .filter(scrabbleWords::contains)
                                 .filter(word -> checkBlanks.apply(word).blockingGet())
                                 .collect(
-                                    () -> new TreeMap<Integer, List<String>>(Comparator.reverseOrder()),
+                                    () -> new TreeMap<>(Comparator.reverseOrder()),
                                     (TreeMap<Integer, List<String>> map, String word) -> {
                                         Integer key = score.apply(word).blockingGet() ;
                                         List<String> list = map.get(key) ;

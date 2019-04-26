@@ -20,7 +20,7 @@ import java.util.function.Function
 open class ReactorPlaysScrabble : ShakespearePlaysScrabble() {
 
     @Benchmark
-    public fun play(): List<Map.Entry<Int, List<String>>> {
+    public override fun play(): List<Map.Entry<Int, List<String>>> {
         val scoreOfALetter = Function<Int, Flux<Int>> { letter -> Flux.just(letterScores[letter - 'a'.toInt()]) }
 
         val letterScore = Function<Map.Entry<Int, LongWrapper>, Flux<Int>> { entry ->
