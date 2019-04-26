@@ -11,15 +11,15 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.function.Function
 
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+/*@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Fork(value = 1)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@State(Scope.Benchmark)
+@State(Scope.Benchmark)*/
 open class ReactorPlaysScrabble : ShakespearePlaysScrabble() {
 
-    @Benchmark
+//    @Benchmark
     public override fun play(): List<Map.Entry<Int, List<String>>> {
         val scoreOfALetter = Function<Int, Flux<Int>> { letter -> Flux.just(letterScores[letter - 'a'.toInt()]) }
 
