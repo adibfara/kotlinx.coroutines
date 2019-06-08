@@ -25,35 +25,7 @@ internal open class ConflatedChannel<E> : AbstractChannel<E>() {
     protected final override val isBufferFull: Boolean get() = false
 
     override fun onClosedIdempotent(closed: LockFreeLinkedListNode) {
-        @Suppress("UNCHECKED_CAST")
-        (closed.prevNode as? SendBuffered<E>)?.let { lastBuffered ->
-            conflatePreviousSendBuffered(lastBuffered)
-        }
-    }
-
-    /**
-     * Queues conflated element, returns null on success or
-     * returns node reference if it was already closed or is waiting for receive.
-     */
-    private fun sendConflated(element: E): ReceiveOrClosed<*>? {
-        val node = SendBuffered(element)
-        queue.addLastIfPrev(node) { prev ->
-            if (prev is ReceiveOrClosed<*>) return@sendConflated prev
-            true
-        }
-        conflatePreviousSendBuffered(node)
-        return null
-    }
-
-    private fun conflatePreviousSendBuffered(node: SendBuffered<E>) {
-        // Conflate all previous SendBuffered, helping other sends to conflate
-        var prev = node.prevNode
-        while (prev is SendBuffered<*>) {
-            if (!prev.remove()) {
-                prev.helpRemove()
-            }
-            prev = prev.prevNode
-        }
+        conflatePreviousSendBuffered(closed)
     }
 
     // result is always `OFFER_SUCCESS | Closed`
@@ -63,13 +35,20 @@ internal open class ConflatedChannel<E> : AbstractChannel<E>() {
             when {
                 result === OFFER_SUCCESS -> return OFFER_SUCCESS
                 result === OFFER_FAILED -> { // try to buffer
-                    when (val sendResult = sendConflated(element)) {
+                    val sendResult = sendConflated(element)
+                    when (sendResult) {
                         null -> return OFFER_SUCCESS
-                        is Closed<*> -> return sendResult
+                        is Closed<*> -> {
+                            conflatePreviousSendBuffered(sendResult)
+                            return sendResult
+                        }
                     }
                     // otherwise there was receiver in queue, retry super.offerInternal
                 }
-                result is Closed<*> -> return result
+                result is Closed<*> -> {
+                    conflatePreviousSendBuffered(result)
+                    return result
+                }
                 else -> error("Invalid offerInternal result $result")
             }
         }
@@ -85,7 +64,10 @@ internal open class ConflatedChannel<E> : AbstractChannel<E>() {
                 result === ALREADY_SELECTED -> return ALREADY_SELECTED
                 result === OFFER_SUCCESS -> return OFFER_SUCCESS
                 result === OFFER_FAILED -> {} // retry
-                result is Closed<*> -> return result
+                result is Closed<*> -> {
+                    conflatePreviousSendBuffered(result)
+                    return result
+                }
                 else -> error("Invalid result $result")
             }
         }

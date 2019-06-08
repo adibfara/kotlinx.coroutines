@@ -52,7 +52,8 @@ internal class CoroutinesTimeoutStatement(
                 "${testTimeoutMs / 1000} seconds"
             else "$testTimeoutMs milliseconds"
 
-        System.err.println("\nTest ${description.methodName} timed out after $units\n")
+        val message = "Test ${description.methodName} timed out after $units"
+        System.err.println("\n$message\n")
         System.err.flush()
 
         DebugProbes.dumpCoroutines()
@@ -64,7 +65,7 @@ internal class CoroutinesTimeoutStatement(
          * 2) Cancel all coroutines via debug agent API (changing system state!)
          * 3) Throw created exception
          */
-        val exception = createTimeoutException(testThread)
+        val exception = createTimeoutException(message, testThread)
         cancelIfNecessary()
         // If timed out test throws an exception, we can't do much except ignoring it
         throw exception
@@ -78,7 +79,7 @@ internal class CoroutinesTimeoutStatement(
         }
     }
 
-    private fun createTimeoutException(thread: Thread): Exception {
+    private fun createTimeoutException(message: String, thread: Thread): Exception {
         val stackTrace = thread.stackTrace
         val exception = TestTimedOutException(testTimeoutMs, TimeUnit.MILLISECONDS)
         exception.stackTrace = stackTrace

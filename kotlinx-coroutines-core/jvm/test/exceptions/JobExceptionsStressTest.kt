@@ -7,6 +7,7 @@ package kotlinx.coroutines.exceptions
 import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Test
+import java.io.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -27,7 +28,7 @@ class JobExceptionsStressTest : TestBase() {
          * Result: one of the exceptions with the rest two as suppressed
          */
         repeat(1000 * stressTestMultiplier) {
-            val exception = captureExceptionsRun(executor) {
+            val exception = runBlock(executor) {
                 val barrier = CyclicBarrier(4)
                 val job = launch(NonCancellable) {
                     launch(start = CoroutineStart.ATOMIC) {

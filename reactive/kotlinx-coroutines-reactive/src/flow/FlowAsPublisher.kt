@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  * Transforms the given flow to a spec-compliant [Publisher].
  */
 @JvmName("from")
-@ExperimentalCoroutinesApi
+@FlowPreview
 public fun <T : Any> Flow<T>.asPublisher(): Publisher<T> = FlowAsPublisher(this)
 
 /**

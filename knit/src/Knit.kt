@@ -352,7 +352,6 @@ fun makeSectionRef(name: String): String = name
     .replace(",", "")
     .replace("(", "")
     .replace(")", "")
-    .replace("`", "")
     .toLowerCase()
 
 class Include(val regex: Regex, val lines: MutableList<String> = arrayListOf())

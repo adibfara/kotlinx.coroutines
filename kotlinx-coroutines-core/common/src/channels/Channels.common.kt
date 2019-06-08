@@ -3,7 +3,6 @@
  */
 @file:JvmMultifileClass
 @file:JvmName("ChannelsKt")
-@file:Suppress("DEPRECATION")
 
 package kotlinx.coroutines.channels
 
@@ -60,10 +59,7 @@ public suspend inline fun <E> BroadcastChannel<E>.consumeEach(action: (E) -> Uni
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun ReceiveChannel<*>.consumes(): CompletionHandler = { cause: Throwable? ->
     cancelConsumed(cause)
 }
@@ -83,10 +79,7 @@ internal fun ReceiveChannel<*>.cancelConsumed(cause: Throwable?) {
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun consumesAll(vararg channels: ReceiveChannel<*>): CompletionHandler =
     { cause: Throwable? ->
         var exception: Throwable? = null
@@ -107,9 +100,18 @@ public fun consumesAll(vararg channels: ReceiveChannel<*>): CompletionHandler =
  * Makes sure that the given [block] consumes all elements from the given channel
  * by always invoking [cancel][ReceiveChannel.cancel] after the execution of the block.
  *
+ * **WARNING**: It is planned that in the future a second invocation of this method
+ * on an channel that is already being consumed is going to fail fast, that is
+ * immediately throw an [IllegalStateException].
+ * See [this issue](https://github.com/Kotlin/kotlinx.coroutines/issues/167)
+ * for details.
+ *
  * The operation is _terminal_.
+ *
+ * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
+ *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@ExperimentalCoroutinesApi // since 1.3.0, tentatively graduates in 1.4.0
+@ObsoleteCoroutinesApi
 public inline fun <E, R> ReceiveChannel<E>.consume(block: ReceiveChannel<E>.() -> R): R {
     var cause: Throwable? = null
     try {
@@ -123,14 +125,21 @@ public inline fun <E, R> ReceiveChannel<E>.consume(block: ReceiveChannel<E>.() -
 }
 
 /**
- * Performs the given [action] for each received element and [cancels][ReceiveChannel.cancel]
- * the channel after the execution of the block.
- * If you need to iterate over the channel without consuming it, a regular `for` loop should be used instead.
+ * Performs the given [action] for each received element.
+ *
+ * **WARNING**: It is planned that in the future a second invocation of this method
+ * on an channel that is already being consumed is going to fail fast, that is
+ * immediately throw an [IllegalStateException].
+ * See [this issue](https://github.com/Kotlin/kotlinx.coroutines/issues/167)
+ * for details.
  *
  * The operation is _terminal_.
  * This function [consumes][ReceiveChannel.consume] all elements of the original [ReceiveChannel].
+ *
+ * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
+ *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@ExperimentalCoroutinesApi // since 1.3.0, tentatively graduates in 1.4.0
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.consumeEach(action: (E) -> Unit) =
     consume {
         for (e in this) action(e)
@@ -145,10 +154,7 @@ public suspend inline fun <E> ReceiveChannel<E>.consumeEach(action: (E) -> Unit)
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.consumeEachIndexed(action: (IndexedValue<E>) -> Unit) {
     var index = 0
     consumeEach {
@@ -165,10 +171,7 @@ public suspend inline fun <E> ReceiveChannel<E>.consumeEachIndexed(action: (Inde
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.elementAt(index: Int): E =
     elementAtOrElse(index) { throw IndexOutOfBoundsException("ReceiveChannel doesn't contain element at index $index.") }
 
@@ -181,10 +184,7 @@ public suspend fun <E> ReceiveChannel<E>.elementAt(index: Int): E =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E =
     consume {
         if (index < 0)
@@ -206,10 +206,7 @@ public suspend inline fun <E> ReceiveChannel<E>.elementAtOrElse(index: Int, defa
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.elementAtOrNull(index: Int): E? =
     consume {
         if (index < 0)
@@ -231,10 +228,7 @@ public suspend fun <E> ReceiveChannel<E>.elementAtOrNull(index: Int): E? =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.find(predicate: (E) -> Boolean): E? =
     firstOrNull(predicate)
 
@@ -247,10 +241,7 @@ public suspend inline fun <E> ReceiveChannel<E>.find(predicate: (E) -> Boolean):
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.findLast(predicate: (E) -> Boolean): E? =
     lastOrNull(predicate)
 
@@ -264,10 +255,7 @@ public suspend inline fun <E> ReceiveChannel<E>.findLast(predicate: (E) -> Boole
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.first(): E =
     consume {
         val iterator = iterator()
@@ -286,10 +274,7 @@ public suspend fun <E> ReceiveChannel<E>.first(): E =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.first(predicate: (E) -> Boolean): E {
     consumeEach {
         if (predicate(it)) return it
@@ -306,10 +291,7 @@ public suspend inline fun <E> ReceiveChannel<E>.first(predicate: (E) -> Boolean)
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.firstOrNull(): E? =
     consume {
         val iterator = iterator()
@@ -327,10 +309,7 @@ public suspend fun <E> ReceiveChannel<E>.firstOrNull(): E? =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.firstOrNull(predicate: (E) -> Boolean): E? {
     consumeEach {
         if (predicate(it)) return it
@@ -347,10 +326,7 @@ public suspend inline fun <E> ReceiveChannel<E>.firstOrNull(predicate: (E) -> Bo
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.indexOf(element: E): Int {
     var index = 0
     consumeEach {
@@ -370,10 +346,7 @@ public suspend fun <E> ReceiveChannel<E>.indexOf(element: E): Int {
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.indexOfFirst(predicate: (E) -> Boolean): Int {
     var index = 0
     consumeEach {
@@ -393,10 +366,7 @@ public suspend inline fun <E> ReceiveChannel<E>.indexOfFirst(predicate: (E) -> B
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.indexOfLast(predicate: (E) -> Boolean): Int {
     var lastIndex = -1
     var index = 0
@@ -418,10 +388,7 @@ public suspend inline fun <E> ReceiveChannel<E>.indexOfLast(predicate: (E) -> Bo
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.last(): E =
     consume {
         val iterator = iterator()
@@ -443,10 +410,7 @@ public suspend fun <E> ReceiveChannel<E>.last(): E =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.last(predicate: (E) -> Boolean): E {
     var last: E? = null
     var found = false
@@ -470,10 +434,7 @@ public suspend inline fun <E> ReceiveChannel<E>.last(predicate: (E) -> Boolean):
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.lastIndexOf(element: E): Int {
     var lastIndex = -1
     var index = 0
@@ -494,10 +455,7 @@ public suspend fun <E> ReceiveChannel<E>.lastIndexOf(element: E): Int {
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.lastOrNull(): E? =
     consume {
         val iterator = iterator()
@@ -518,10 +476,7 @@ public suspend fun <E> ReceiveChannel<E>.lastOrNull(): E? =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.lastOrNull(predicate: (E) -> Boolean): E? {
     var last: E? = null
     consumeEach {
@@ -541,10 +496,7 @@ public suspend inline fun <E> ReceiveChannel<E>.lastOrNull(predicate: (E) -> Boo
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.single(): E =
     consume {
         val iterator = iterator()
@@ -565,10 +517,7 @@ public suspend fun <E> ReceiveChannel<E>.single(): E =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.single(predicate: (E) -> Boolean): E {
     var single: E? = null
     var found = false
@@ -593,10 +542,7 @@ public suspend inline fun <E> ReceiveChannel<E>.single(predicate: (E) -> Boolean
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.singleOrNull(): E? =
     consume {
         val iterator = iterator()
@@ -617,10 +563,7 @@ public suspend fun <E> ReceiveChannel<E>.singleOrNull(): E? =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.singleOrNull(predicate: (E) -> Boolean): E? {
     var single: E? = null
     var found = false
@@ -644,10 +587,7 @@ public suspend inline fun <E> ReceiveChannel<E>.singleOrNull(predicate: (E) -> B
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun <E> ReceiveChannel<E>.drop(n: Int, context: CoroutineContext = Dispatchers.Unconfined): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         require(n >= 0) { "Requested element count $n is less than zero." }
@@ -672,10 +612,8 @@ public fun <E> ReceiveChannel<E>.drop(n: Int, context: CoroutineContext = Dispat
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E> ReceiveChannel<E>.dropWhile(context: CoroutineContext = Dispatchers.Unconfined, predicate: suspend (E) -> Boolean): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         for (e in this@dropWhile) {
@@ -698,10 +636,8 @@ public fun <E> ReceiveChannel<E>.dropWhile(context: CoroutineContext = Dispatche
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E> ReceiveChannel<E>.filter(context: CoroutineContext = Dispatchers.Unconfined, predicate: suspend (E) -> Boolean): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         for (e in this@filter) {
@@ -720,10 +656,8 @@ public fun <E> ReceiveChannel<E>.filter(context: CoroutineContext = Dispatchers.
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E> ReceiveChannel<E>.filterIndexed(context: CoroutineContext = Dispatchers.Unconfined, predicate: suspend (index: Int, E) -> Boolean): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         var index = 0
@@ -743,10 +677,7 @@ public fun <E> ReceiveChannel<E>.filterIndexed(context: CoroutineContext = Dispa
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.filterIndexedTo(destination: C, predicate: (index: Int, E) -> Boolean): C {
     consumeEachIndexed { (index, element) ->
         if (predicate(index, element)) destination.add(element)
@@ -765,10 +696,7 @@ public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.fil
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterIndexedTo(destination: C, predicate: (index: Int, E) -> Boolean): C {
     consumeEachIndexed { (index, element) ->
         if (predicate(index, element)) destination.send(element)
@@ -785,10 +713,8 @@ public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterIndexe
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E> ReceiveChannel<E>.filterNot(context: CoroutineContext = Dispatchers.Unconfined, predicate: suspend (E) -> Boolean): ReceiveChannel<E> =
     filter(context) { !predicate(it) }
 
@@ -801,10 +727,7 @@ public fun <E> ReceiveChannel<E>.filterNot(context: CoroutineContext = Dispatche
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 @Suppress("UNCHECKED_CAST")
 public fun <E : Any> ReceiveChannel<E?>.filterNotNull(): ReceiveChannel<E> =
     filter { it != null } as ReceiveChannel<E>
@@ -818,10 +741,7 @@ public fun <E : Any> ReceiveChannel<E?>.filterNotNull(): ReceiveChannel<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E : Any, C : MutableCollection<in E>> ReceiveChannel<E?>.filterNotNullTo(destination: C): C {
     consumeEach {
         if (it != null) destination.add(it)
@@ -838,10 +758,7 @@ public suspend fun <E : Any, C : MutableCollection<in E>> ReceiveChannel<E?>.fil
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E : Any, C : SendChannel<E>> ReceiveChannel<E?>.filterNotNullTo(destination: C): C {
     consumeEach {
         if (it != null) destination.send(it)
@@ -858,10 +775,7 @@ public suspend fun <E : Any, C : SendChannel<E>> ReceiveChannel<E?>.filterNotNul
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.filterNotTo(destination: C, predicate: (E) -> Boolean): C {
     consumeEach {
         if (!predicate(it)) destination.add(it)
@@ -878,10 +792,7 @@ public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.fil
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterNotTo(destination: C, predicate: (E) -> Boolean): C {
     consumeEach {
         if (!predicate(it)) destination.send(it)
@@ -898,10 +809,7 @@ public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterNotTo(
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.filterTo(destination: C, predicate: (E) -> Boolean): C {
     consumeEach {
         if (predicate(it)) destination.add(it)
@@ -918,10 +826,7 @@ public suspend inline fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.fil
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterTo(destination: C, predicate: (E) -> Boolean): C {
     consumeEach {
         if (predicate(it)) destination.send(it)
@@ -938,10 +843,7 @@ public suspend inline fun <E, C : SendChannel<E>> ReceiveChannel<E>.filterTo(des
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun <E> ReceiveChannel<E>.take(n: Int, context: CoroutineContext = Dispatchers.Unconfined): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         if (n == 0) return@produce
@@ -964,10 +866,8 @@ public fun <E> ReceiveChannel<E>.take(n: Int, context: CoroutineContext = Dispat
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E> ReceiveChannel<E>.takeWhile(context: CoroutineContext = Dispatchers.Unconfined, predicate: suspend (E) -> Boolean): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         for (e in this@takeWhile) {
@@ -990,10 +890,7 @@ public fun <E> ReceiveChannel<E>.takeWhile(context: CoroutineContext = Dispatche
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V> ReceiveChannel<E>.associate(transform: (E) -> Pair<K, V>): Map<K, V> =
     associateTo(LinkedHashMap(), transform)
 
@@ -1011,10 +908,7 @@ public suspend inline fun <E, K, V> ReceiveChannel<E>.associate(transform: (E) -
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K> ReceiveChannel<E>.associateBy(keySelector: (E) -> K): Map<K, E> =
     associateByTo(LinkedHashMap(), keySelector)
 
@@ -1031,10 +925,7 @@ public suspend inline fun <E, K> ReceiveChannel<E>.associateBy(keySelector: (E) 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V> ReceiveChannel<E>.associateBy(keySelector: (E) -> K, valueTransform: (E) -> V): Map<K, V> =
     associateByTo(LinkedHashMap(), keySelector, valueTransform)
 
@@ -1051,10 +942,7 @@ public suspend inline fun <E, K, V> ReceiveChannel<E>.associateBy(keySelector: (
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, M : MutableMap<in K, in E>> ReceiveChannel<E>.associateByTo(destination: M, keySelector: (E) -> K): M {
     consumeEach {
         destination.put(keySelector(it), it)
@@ -1075,10 +963,7 @@ public suspend inline fun <E, K, M : MutableMap<in K, in E>> ReceiveChannel<E>.a
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V, M : MutableMap<in K, in V>> ReceiveChannel<E>.associateByTo(destination: M, keySelector: (E) -> K, valueTransform: (E) -> V): M {
     consumeEach {
         destination.put(keySelector(it), valueTransform(it))
@@ -1098,10 +983,7 @@ public suspend inline fun <E, K, V, M : MutableMap<in K, in V>> ReceiveChannel<E
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V, M : MutableMap<in K, in V>> ReceiveChannel<E>.associateTo(destination: M, transform: (E) -> Pair<K, V>): M {
     consumeEach {
         destination += transform(it)
@@ -1119,10 +1001,7 @@ public suspend inline fun <E, K, V, M : MutableMap<in K, in V>> ReceiveChannel<E
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E, C : SendChannel<E>> ReceiveChannel<E>.toChannel(destination: C): C {
     consumeEach {
         destination.send(it)
@@ -1139,10 +1018,7 @@ public suspend fun <E, C : SendChannel<E>> ReceiveChannel<E>.toChannel(destinati
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E, C : MutableCollection<in E>> ReceiveChannel<E>.toCollection(destination: C): C {
     consumeEach {
         destination.add(it)
@@ -1168,10 +1044,7 @@ public suspend fun <E> ReceiveChannel<E>.toList(): List<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <K, V> ReceiveChannel<Pair<K, V>>.toMap(): Map<K, V> =
     toMap(LinkedHashMap())
 
@@ -1184,10 +1057,7 @@ public suspend fun <K, V> ReceiveChannel<Pair<K, V>>.toMap(): Map<K, V> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <K, V, M : MutableMap<in K, in V>> ReceiveChannel<Pair<K, V>>.toMap(destination: M): M {
     consumeEach {
         destination += it
@@ -1204,10 +1074,7 @@ public suspend fun <K, V, M : MutableMap<in K, in V>> ReceiveChannel<Pair<K, V>>
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.toMutableList(): MutableList<E> =
     toCollection(ArrayList())
 
@@ -1222,10 +1089,7 @@ public suspend fun <E> ReceiveChannel<E>.toMutableList(): MutableList<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.toSet(): Set<E> =
     this.toMutableSet()
 
@@ -1238,10 +1102,8 @@ public suspend fun <E> ReceiveChannel<E>.toSet(): Set<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R> ReceiveChannel<E>.flatMap(context: CoroutineContext = Dispatchers.Unconfined, transform: suspend (E) -> ReceiveChannel<R>): ReceiveChannel<R> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         for (e in this@flatMap) {
@@ -1261,10 +1123,7 @@ public fun <E, R> ReceiveChannel<E>.flatMap(context: CoroutineContext = Dispatch
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K> ReceiveChannel<E>.groupBy(keySelector: (E) -> K): Map<K, List<E>> =
     groupByTo(LinkedHashMap(), keySelector)
 
@@ -1281,10 +1140,7 @@ public suspend inline fun <E, K> ReceiveChannel<E>.groupBy(keySelector: (E) -> K
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V> ReceiveChannel<E>.groupBy(keySelector: (E) -> K, valueTransform: (E) -> V): Map<K, List<V>> =
     groupByTo(LinkedHashMap(), keySelector, valueTransform)
 
@@ -1300,10 +1156,7 @@ public suspend inline fun <E, K, V> ReceiveChannel<E>.groupBy(keySelector: (E) -
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, M : MutableMap<in K, MutableList<E>>> ReceiveChannel<E>.groupByTo(destination: M, keySelector: (E) -> K): M {
     consumeEach {
         val key = keySelector(it)
@@ -1326,10 +1179,7 @@ public suspend inline fun <E, K, M : MutableMap<in K, MutableList<E>>> ReceiveCh
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, K, V, M : MutableMap<in K, MutableList<V>>> ReceiveChannel<E>.groupByTo(destination: M, keySelector: (E) -> K, valueTransform: (E) -> V): M {
     consumeEach {
         val key = keySelector(it)
@@ -1346,10 +1196,7 @@ public suspend inline fun <E, K, V, M : MutableMap<in K, MutableList<V>>> Receiv
  * The operation is _intermediate_ and _stateless_.
  * This function [consumes][ReceiveChannel.consume] all elements of the original [ReceiveChannel].
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+// todo: mark transform with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R> ReceiveChannel<E>.map(context: CoroutineContext = Dispatchers.Unconfined, transform: suspend (E) -> R): ReceiveChannel<R> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         consumeEach {
@@ -1369,10 +1216,8 @@ public fun <E, R> ReceiveChannel<E>.map(context: CoroutineContext = Dispatchers.
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R> ReceiveChannel<E>.mapIndexed(context: CoroutineContext = Dispatchers.Unconfined, transform: suspend (index: Int, E) -> R): ReceiveChannel<R> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         var index = 0
@@ -1393,10 +1238,8 @@ public fun <E, R> ReceiveChannel<E>.mapIndexed(context: CoroutineContext = Dispa
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R : Any> ReceiveChannel<E>.mapIndexedNotNull(context: CoroutineContext = Dispatchers.Unconfined, transform: suspend (index: Int, E) -> R?): ReceiveChannel<R> =
     mapIndexed(context, transform).filterNotNull()
 
@@ -1412,10 +1255,7 @@ public fun <E, R : Any> ReceiveChannel<E>.mapIndexedNotNull(context: CoroutineCo
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Any, C : MutableCollection<in R>> ReceiveChannel<E>.mapIndexedNotNullTo(destination: C, transform: (index: Int, E) -> R?): C {
     consumeEachIndexed { (index, element) ->
         transform(index, element)?.let { destination.add(it) }
@@ -1435,10 +1275,7 @@ public suspend inline fun <E, R : Any, C : MutableCollection<in R>> ReceiveChann
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Any, C : SendChannel<R>> ReceiveChannel<E>.mapIndexedNotNullTo(destination: C, transform: (index: Int, E) -> R?): C {
     consumeEachIndexed { (index, element) ->
         transform(index, element)?.let { destination.send(it) }
@@ -1458,10 +1295,7 @@ public suspend inline fun <E, R : Any, C : SendChannel<R>> ReceiveChannel<E>.map
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R, C : MutableCollection<in R>> ReceiveChannel<E>.mapIndexedTo(destination: C, transform: (index: Int, E) -> R): C {
     var index = 0
     consumeEach {
@@ -1482,10 +1316,7 @@ public suspend inline fun <E, R, C : MutableCollection<in R>> ReceiveChannel<E>.
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R, C : SendChannel<R>> ReceiveChannel<E>.mapIndexedTo(destination: C, transform: (index: Int, E) -> R): C {
     var index = 0
     consumeEach {
@@ -1504,10 +1335,8 @@ public suspend inline fun <E, R, C : SendChannel<R>> ReceiveChannel<E>.mapIndexe
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R : Any> ReceiveChannel<E>.mapNotNull(context: CoroutineContext = Dispatchers.Unconfined, transform: suspend (E) -> R?): ReceiveChannel<R> =
     map(context, transform).filterNotNull()
 
@@ -1521,10 +1350,7 @@ public fun <E, R : Any> ReceiveChannel<E>.mapNotNull(context: CoroutineContext =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Any, C : MutableCollection<in R>> ReceiveChannel<E>.mapNotNullTo(destination: C, transform: (E) -> R?): C {
     consumeEach {
         transform(it)?.let { destination.add(it) }
@@ -1542,10 +1368,7 @@ public suspend inline fun <E, R : Any, C : MutableCollection<in R>> ReceiveChann
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Any, C : SendChannel<R>> ReceiveChannel<E>.mapNotNullTo(destination: C, transform: (E) -> R?): C {
     consumeEach {
         transform(it)?.let { destination.send(it) }
@@ -1563,10 +1386,7 @@ public suspend inline fun <E, R : Any, C : SendChannel<R>> ReceiveChannel<E>.map
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R, C : MutableCollection<in R>> ReceiveChannel<E>.mapTo(destination: C, transform: (E) -> R): C {
     consumeEach {
         destination.add(transform(it))
@@ -1584,10 +1404,7 @@ public suspend inline fun <E, R, C : MutableCollection<in R>> ReceiveChannel<E>.
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R, C : SendChannel<R>> ReceiveChannel<E>.mapTo(destination: C, transform: (E) -> R): C {
     consumeEach {
         destination.send(transform(it))
@@ -1604,10 +1421,7 @@ public suspend inline fun <E, R, C : SendChannel<R>> ReceiveChannel<E>.mapTo(des
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun <E> ReceiveChannel<E>.withIndex(context: CoroutineContext = Dispatchers.Unconfined): ReceiveChannel<IndexedValue<E>> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         var index = 0
@@ -1627,10 +1441,7 @@ public fun <E> ReceiveChannel<E>.withIndex(context: CoroutineContext = Dispatche
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun <E> ReceiveChannel<E>.distinct(): ReceiveChannel<E> =
     this.distinctBy { it }
 
@@ -1646,10 +1457,8 @@ public fun <E> ReceiveChannel<E>.distinct(): ReceiveChannel<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark predicate with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, K> ReceiveChannel<E>.distinctBy(context: CoroutineContext = Dispatchers.Unconfined, selector: suspend (E) -> K): ReceiveChannel<E> =
     GlobalScope.produce(context, onCompletion = consumes()) {
         val keys = HashSet<K>()
@@ -1673,10 +1482,7 @@ public fun <E, K> ReceiveChannel<E>.distinctBy(context: CoroutineContext = Dispa
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.toMutableSet(): MutableSet<E> =
     toCollection(LinkedHashSet())
 
@@ -1689,10 +1495,7 @@ public suspend fun <E> ReceiveChannel<E>.toMutableSet(): MutableSet<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.all(predicate: (E) -> Boolean): Boolean {
     consumeEach {
         if (!predicate(it)) return false
@@ -1709,10 +1512,7 @@ public suspend inline fun <E> ReceiveChannel<E>.all(predicate: (E) -> Boolean): 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.any(): Boolean =
     consume {
         return iterator().hasNext()
@@ -1727,10 +1527,7 @@ public suspend fun <E> ReceiveChannel<E>.any(): Boolean =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.any(predicate: (E) -> Boolean): Boolean {
     consumeEach {
         if (predicate(it)) return true
@@ -1747,10 +1544,7 @@ public suspend inline fun <E> ReceiveChannel<E>.any(predicate: (E) -> Boolean): 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.count(): Int {
     var count = 0
     consumeEach { count++ }
@@ -1766,10 +1560,7 @@ public suspend fun <E> ReceiveChannel<E>.count(): Int {
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.count(predicate: (E) -> Boolean): Int {
     var count = 0
     consumeEach {
@@ -1787,10 +1578,7 @@ public suspend inline fun <E> ReceiveChannel<E>.count(predicate: (E) -> Boolean)
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R> ReceiveChannel<E>.fold(initial: R, operation: (acc: R, E) -> R): R {
     var accumulator = initial
     consumeEach {
@@ -1811,10 +1599,7 @@ public suspend inline fun <E, R> ReceiveChannel<E>.fold(initial: R, operation: (
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R> ReceiveChannel<E>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
     var index = 0
     var accumulator = initial
@@ -1833,10 +1618,7 @@ public suspend inline fun <E, R> ReceiveChannel<E>.foldIndexed(initial: R, opera
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Comparable<R>> ReceiveChannel<E>.maxBy(selector: (E) -> R): E? =
     consume {
         val iterator = iterator()
@@ -1863,10 +1645,7 @@ public suspend inline fun <E, R : Comparable<R>> ReceiveChannel<E>.maxBy(selecto
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.maxWith(comparator: Comparator<in E>): E? =
     consume {
         val iterator = iterator()
@@ -1888,10 +1667,7 @@ public suspend fun <E> ReceiveChannel<E>.maxWith(comparator: Comparator<in E>): 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E, R : Comparable<R>> ReceiveChannel<E>.minBy(selector: (E) -> R): E? =
     consume {
         val iterator = iterator()
@@ -1918,10 +1694,7 @@ public suspend inline fun <E, R : Comparable<R>> ReceiveChannel<E>.minBy(selecto
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.minWith(comparator: Comparator<in E>): E? =
     consume {
         val iterator = iterator()
@@ -1943,10 +1716,7 @@ public suspend fun <E> ReceiveChannel<E>.minWith(comparator: Comparator<in E>): 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend fun <E> ReceiveChannel<E>.none(): Boolean =
     consume {
         return !iterator().hasNext()
@@ -1961,10 +1731,7 @@ public suspend fun <E> ReceiveChannel<E>.none(): Boolean =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.none(predicate: (E) -> Boolean): Boolean {
     consumeEach {
         if (predicate(it)) return false
@@ -1981,10 +1748,7 @@ public suspend inline fun <E> ReceiveChannel<E>.none(predicate: (E) -> Boolean):
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <S, E : S> ReceiveChannel<E>.reduce(operation: (acc: S, E) -> S): S =
     consume {
         val iterator = this.iterator()
@@ -2008,10 +1772,8 @@ public suspend inline fun <S, E : S> ReceiveChannel<E>.reduce(operation: (acc: S
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark operation with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public suspend inline fun <S, E : S> ReceiveChannel<E>.reduceIndexed(operation: (index: Int, acc: S, E) -> S): S =
     consume {
         val iterator = this.iterator()
@@ -2033,10 +1795,7 @@ public suspend inline fun <S, E : S> ReceiveChannel<E>.reduceIndexed(operation: 
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.sumBy(selector: (E) -> Int): Int {
     var sum = 0
     consumeEach {
@@ -2054,10 +1813,7 @@ public suspend inline fun <E> ReceiveChannel<E>.sumBy(selector: (E) -> Int): Int
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.sumByDouble(selector: (E) -> Double): Double {
     var sum = 0.0
     consumeEach {
@@ -2075,10 +1831,7 @@ public suspend inline fun <E> ReceiveChannel<E>.sumByDouble(selector: (E) -> Dou
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public fun <E : Any> ReceiveChannel<E?>.requireNoNulls(): ReceiveChannel<E> =
     map { it ?: throw IllegalArgumentException("null element found in $this.") }
 
@@ -2093,10 +1846,7 @@ public fun <E : Any> ReceiveChannel<E?>.requireNoNulls(): ReceiveChannel<E> =
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public suspend inline fun <E> ReceiveChannel<E>.partition(predicate: (E) -> Boolean): Pair<List<E>, List<E>> {
     val first = ArrayList<E>()
     val second = ArrayList<E>()
@@ -2120,10 +1870,7 @@ public suspend inline fun <E> ReceiveChannel<E>.partition(predicate: (E) -> Bool
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
 public infix fun <E, R> ReceiveChannel<E>.zip(other: ReceiveChannel<R>): ReceiveChannel<Pair<E, R>> =
     zip(other) { t1, t2 -> t1 to t2 }
 
@@ -2136,10 +1883,8 @@ public infix fun <E, R> ReceiveChannel<E>.zip(other: ReceiveChannel<R>): Receive
  * **Note: This API will become obsolete in future updates with introduction of lazy asynchronous streams.**
  *           See [issue #254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
  */
-@Deprecated(
-    message = "Channel operators are deprecated in favour of Flow and will be removed in 1.4",
-    level = DeprecationLevel.WARNING
-)
+@ObsoleteCoroutinesApi
+// todo: mark transform with crossinline modifier when it is supported: https://youtrack.jetbrains.com/issue/KT-19159
 public fun <E, R, V> ReceiveChannel<E>.zip(other: ReceiveChannel<R>, context: CoroutineContext = Dispatchers.Unconfined, transform: (a: E, b: R) -> V): ReceiveChannel<V> =
     GlobalScope.produce(context, onCompletion = consumesAll(this, other)) {
         val otherIterator = other.iterator()
@@ -2149,3 +1894,5 @@ public fun <E, R, V> ReceiveChannel<E>.zip(other: ReceiveChannel<R>, context: Co
             send(transform(element1, element2))
         }
     }
+
+

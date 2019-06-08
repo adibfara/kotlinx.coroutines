@@ -4,8 +4,6 @@
 
 package kotlinx.coroutines
 
-import kotlinx.cinterop.*
-import platform.posix.*
 import kotlin.coroutines.*
 
 /**
@@ -54,27 +52,25 @@ private class BlockingCoroutine<T>(
     parentContext: CoroutineContext,
     private val eventLoop: EventLoop?
 ) : AbstractCoroutine<T>(parentContext, true) {
-    override val isScopedCoroutine: Boolean get() = true
+    override val cancelsParent: Boolean
+        get() = false // it throws exception to parent instead of cancelling it
 
     @Suppress("UNCHECKED_CAST")
-    fun joinBlocking(): T = memScoped {
+    fun joinBlocking(): T {
         try {
             eventLoop?.incrementUseCount()
-            val timespec = alloc<timespec>()
             while (true) {
                 val parkNanos = eventLoop?.processNextEvent() ?: Long.MAX_VALUE
                 // note: process next even may loose unpark flag, so check if completed before parking
                 if (isCompleted) break
-                timespec.tv_sec = (parkNanos / 1000000000L).convert() // 1e9 ns -> sec
-                timespec.tv_nsec = (parkNanos % 1000000000L).convert() // % 1e9
-                nanosleep(timespec.ptr, null)
+                // todo: LockSupport.parkNanos(this, parkNanos)
             }
         } finally { // paranoia
             eventLoop?.decrementUseCount()
         }
         // now return result
-        val state = state
+        val state = this.state
         (state as? CompletedExceptionally)?.let { throw it.cause }
-        state as T
+        return state as T
     }
 }

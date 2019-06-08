@@ -218,35 +218,32 @@ internal abstract class DispatchedTask<in T>(
 
     public final override fun run() {
         val taskContext = this.taskContext
-        var fatalException: Throwable? = null
+        var exception: Throwable? = null
         try {
             val delegate = delegate as DispatchedContinuation<T>
             val continuation = delegate.continuation
             val context = continuation.context
+            val job = if (resumeMode.isCancellableMode) context[Job] else null
             val state = takeState() // NOTE: Must take state in any case, even if cancelled
             withCoroutineContext(context, delegate.countOrElement) {
-                val exception = getExceptionalResult(state)
-                val job = if (resumeMode.isCancellableMode) context[Job] else null
-                /*
-                 * Check whether continuation was originally resumed with an exception.
-                 * If so, it dominates cancellation, otherwise the original exception
-                 * will be silently lost.
-                 */
-                if (exception == null && job != null && !job.isActive) {
+                if (job != null && !job.isActive) {
                     val cause = job.getCancellationException()
                     cancelResult(state, cause)
                     continuation.resumeWithStackTrace(cause)
                 } else {
-                    if (exception != null) continuation.resumeWithStackTrace(exception)
-                    else continuation.resume(getSuccessfulResult(state))
+                    val exception = getExceptionalResult(state)
+                    if (exception != null)
+                        continuation.resumeWithStackTrace(exception)
+                    else
+                        continuation.resume(getSuccessfulResult(state))
                 }
             }
         } catch (e: Throwable) {
             // This instead of runCatching to have nicer stacktrace and debug experience
-            fatalException = e
+            exception = e
         } finally {
             val result = runCatching { taskContext.afterTask() }
-            handleFatalException(fatalException, result.exceptionOrNull())
+            handleFatalException(exception, result.exceptionOrNull())
         }
     }
 

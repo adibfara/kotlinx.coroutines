@@ -60,9 +60,6 @@ public fun CoroutineScope.launch(
 /**
  * Creates a coroutine and returns its future result as an implementation of [Deferred].
  * The running coroutine is cancelled when the resulting deferred is [cancelled][Job.cancel].
- * The resulting coroutine has a key difference compared with similar primitives in other languages
- * and frameworks: it cancels the parent job (or outer scope) on failure to enforce *structured concurrency* paradigm.
- * To change that behaviour, supervising parent ([SupervisorJob] or [supervisorScope]) can be used.
  *
  * Coroutine context is inherited from a [CoroutineScope], additional context elements can be specified with [context] argument.
  * If the context does not have any dispatcher nor any other [ContinuationInterceptor], then [Dispatchers.Default] is used.
@@ -75,6 +72,8 @@ public fun CoroutineScope.launch(
  * the resulting [Deferred] is created in _new_ state. It can be explicitly started with [start][Job.start]
  * function and will be started implicitly on the first invocation of [join][Job.join], [await][Deferred.await] or [awaitAll].
  *
+ * @param context additional to [CoroutineScope.coroutineContext] context of the coroutine.
+ * @param start coroutine start option. The default value is [CoroutineStart.DEFAULT].
  * @param block the coroutine code.
  */
 public fun <T> CoroutineScope.async(
@@ -157,7 +156,7 @@ public suspend fun <T> withContext(
         }
     }
     // SLOW PATH -- use new dispatcher
-    val coroutine = DispatchedCoroutine(newContext, uCont) // MODE_CANCELLABLE
+    val coroutine = DispatchedCoroutine(newContext, uCont) // MODE_ATOMIC_DEFAULT
     coroutine.initParentJob()
     block.startCoroutineCancellable(coroutine, coroutine)
     coroutine.getResult()
@@ -216,7 +215,7 @@ private class DispatchedCoroutine<in T>(
     context: CoroutineContext,
     uCont: Continuation<T>
 ) : ScopeCoroutine<T>(context, uCont) {
-    override val defaultResumeMode: Int get() = MODE_CANCELLABLE
+    override val defaultResumeMode: Int get() = MODE_ATOMIC_DEFAULT
 
     // this is copy-and-paste of a decision state machine inside AbstractionContinuation
     // todo: we may some-how abstract it via inline class

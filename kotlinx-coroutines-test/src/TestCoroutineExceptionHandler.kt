@@ -40,7 +40,6 @@ public class TestCoroutineExceptionHandler :
 {
     private val _exceptions = mutableListOf<Throwable>()
 
-    /** @suppress **/
     override fun handleException(context: CoroutineContext, exception: Throwable) {
         synchronized(_exceptions) {
             _exceptions += exception

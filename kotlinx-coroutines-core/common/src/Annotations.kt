@@ -18,15 +18,13 @@ import kotlinx.coroutines.flow.Flow
 public annotation class ExperimentalCoroutinesApi
 
 /**
- * Marks [Flow]-related API as a feature preview.
+ * Marks all [Flow] declarations as a feature preview to indicate that [Flow] is still experimental and has a 'preview' status.
  *
  * Flow preview has **no** backward compatibility guarantees, including both binary and source compatibility.
  * Its API and semantics can and will be changed in next releases.
  *
  * Feature preview can be used to evaluate its real-world strengths and weaknesses, gather and provide feedback.
- * According to the feedback, [Flow] will be refined on its road to stabilization and promotion to a stable API.
- *
- * The best way to speed up preview feature promotion is providing the feedback on the feature.
+ * According to the feedback, [Flow] will be refined on its road to stabilization and promotion to stable API.
  */
 @MustBeDocumented
 @Retention(value = AnnotationRetention.BINARY)
@@ -46,7 +44,7 @@ public annotation class ObsoleteCoroutinesApi
 
 /**
  * Marks declarations that are **internal** in coroutines API, which means that should not be used outside of
- * `kotlinx.coroutines`, because their signatures and semantics will change between future releases without any
+ * `kotlinx.coroutines`, because their signatures and semantics will be changing between release without any
  * warnings and without providing any migration aids.
  */
 @Retention(value = AnnotationRetention.BINARY)

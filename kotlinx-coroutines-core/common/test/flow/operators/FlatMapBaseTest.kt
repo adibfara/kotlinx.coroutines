@@ -5,6 +5,8 @@
 package kotlinx.coroutines.flow
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
 abstract class FlatMapBaseTest : TestBase() {
@@ -73,12 +75,14 @@ abstract class FlatMapBaseTest : TestBase() {
     fun testIsolatedContext() = runTest {
         val flow = flowOf(1)
             .flowOn(NamedDispatchers("irrelevant"))
-            .flatMap {
+            .flowWith(NamedDispatchers("inner")) {
+                flatMap {
                     flow {
                         assertEquals("inner", NamedDispatchers.name())
                         emit(it)
                     }
-            }.flowOn(NamedDispatchers("inner"))
+                }
+            }.flowOn(NamedDispatchers("irrelevant"))
             .flatMap {
                 flow {
                     assertEquals("outer", NamedDispatchers.name())

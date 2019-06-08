@@ -17,11 +17,7 @@ class DoubleChannelCloseStressTest : TestBase() {
                 // empty -- just closes channel
             }
             GlobalScope.launch(CoroutineName("sender")) {
-                try {
-                    actor.send(1)
-                } catch (e: ClosedSendChannelException) {
-                    // ok -- closed before send
-                }
+                actor.send(1)
             }
             Thread.sleep(1)
             actor.close()

@@ -77,7 +77,7 @@ class ProduceExceptionsTest : TestBase() {
             channel!!.cancel()
             try {
                 send(1)
-            } catch (e: CancellationException) {
+            } catch (e: ClosedSendChannelException) {
                 expect(3)
                 throw e
             }
@@ -87,7 +87,7 @@ class ProduceExceptionsTest : TestBase() {
         yield()
         try {
             channel.receive()
-        } catch (e: CancellationException) {
+        } catch (e: ClosedReceiveChannelException) {
             assertTrue(e.suppressed.isEmpty())
             finish(4)
         }
@@ -160,9 +160,7 @@ class ProduceExceptionsTest : TestBase() {
         yield()
         try {
             channel.receive()
-        } catch (e: CancellationException) {
-            // RECOVER_STACK_TRACES
-            assertTrue(e.cause?.cause is TestException2)
+        } catch (e: TestException2) {
             finish(4)
         }
     }

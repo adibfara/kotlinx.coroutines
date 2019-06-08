@@ -7,24 +7,23 @@ package kotlinx.coroutines.flow
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.coroutines.coroutineContext as currentContext
 
 class FlowContextOptimizationsTest : TestBase() {
+
     @Test
     fun testBaseline() = runTest {
-        val flowDispatcher = wrapperDispatcher(currentContext)
-        val collectContext = currentContext
+        val flowDispatcher = wrapperDispatcher(coroutineContext)
+        val collectContext = coroutineContext
         flow {
-            assertSame(flowDispatcher, currentContext[ContinuationInterceptor] as CoroutineContext)
+            assertSame(flowDispatcher, kotlin.coroutines.coroutineContext[ContinuationInterceptor] as CoroutineContext)
             expect(1)
             emit(1)
             expect(2)
             emit(2)
             expect(3)
-        }
-            .flowOn(flowDispatcher)
+        }.flowOn(flowDispatcher)
             .collect { value ->
-                assertEquals(collectContext.minusKey(Job), currentContext.minusKey(Job))
+                assertEquals(collectContext, coroutineContext)
                 if (value == 1) expect(4)
                 else expect(5)
             }
@@ -33,84 +32,72 @@ class FlowContextOptimizationsTest : TestBase() {
     }
 
     @Test
-    fun testFusedSameContext() = runTest {
+    fun testFusable() = runTest {
         flow {
             expect(1)
             emit(1)
             expect(3)
             emit(2)
             expect(5)
-        }
-            .flowOn(currentContext.minusKey(Job))
+        }.flowOn(coroutineContext.minusKey(Job))
             .collect { value ->
                 if (value == 1) expect(2)
                 else expect(4)
             }
+
         finish(6)
     }
 
     @Test
-    fun testFusedSameContextWithIntermediateOperators() = runTest {
+    fun testFusableWithIntermediateOperators() = runTest {
         flow {
             expect(1)
             emit(1)
             expect(3)
             emit(2)
             expect(5)
-        }
-            .flowOn(currentContext.minusKey(Job))
+        }.flowOn(coroutineContext.minusKey(Job))
             .map { it }
-            .flowOn(currentContext.minusKey(Job))
+            .flowOn(coroutineContext.minusKey(Job))
             .collect { value ->
                 if (value == 1) expect(2)
                 else expect(4)
             }
+
         finish(6)
     }
 
     @Test
-    fun testFusedSameDispatcher() = runTest {
+    fun testNotFusableWithContext() = runTest {
         flow {
-            assertEquals("Name", currentContext[CoroutineName]?.name)
             expect(1)
             emit(1)
-            expect(3)
+            expect(2)
             emit(2)
-            expect(5)
-        }
-            .flowOn(CoroutineName("Name"))
+            expect(3)
+        }.flowOn(coroutineContext.minusKey(Job) + CoroutineName("Name"))
             .collect { value ->
-                assertEquals(null, currentContext[CoroutineName]?.name)
-                if (value == 1) expect(2)
-                else expect(4)
+                if (value == 1) expect(4)
+                else expect(5)
             }
+
         finish(6)
     }
 
     @Test
-    fun testFusedManySameDispatcher() = runTest {
+    fun testFusableFlowWith() = runTest {
         flow {
-            assertEquals("Name1", currentContext[CoroutineName]?.name)
-            assertEquals("OK", currentContext[CustomContextElement]?.str)
             expect(1)
             emit(1)
-            expect(3)
-            emit(2)
-            expect(5)
-        }
-            .flowOn(CoroutineName("Name1")) // the first one works
-            .flowOn(CoroutineName("Name2"))
-            .flowOn(CoroutineName("Name3") + CustomContextElement("OK")) // but this is not lost
-            .collect { value ->
-                assertEquals(null, currentContext[CoroutineName]?.name)
-                assertEquals(null, currentContext[CustomContextElement]?.str)
-                if (value == 1) expect(2)
-                else expect(4)
+            expect(4)
+        }.flowWith(coroutineContext.minusKey(Job)) {
+            onEach { value ->
+                expect(2)
             }
-        finish(6)
-    }
+        }.collect {
+            expect(3)
+        }
 
-    data class CustomContextElement(val str: String) : AbstractCoroutineContextElement(Key) {
-        companion object Key : CoroutineContext.Key<CustomContextElement>
+        finish(5)
     }
 }

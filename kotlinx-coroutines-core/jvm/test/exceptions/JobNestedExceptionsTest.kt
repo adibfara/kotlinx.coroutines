@@ -13,7 +13,7 @@ class JobNestedExceptionsTest : TestBase() {
 
     @Test
     fun testExceptionUnwrapping() {
-        val exception = captureExceptionsRun {
+        val exception = runBlock {
             val job = Job()
             launch(job) {
                 expect(2)
@@ -37,7 +37,7 @@ class JobNestedExceptionsTest : TestBase() {
 
     @Test
     fun testExceptionUnwrappingWithSuspensions() {
-        val exception = captureExceptionsRun {
+        val exception = runBlock {
             val job = Job()
             launch(job) {
                 expect(2)
@@ -66,7 +66,7 @@ class JobNestedExceptionsTest : TestBase() {
 
     @Test
     fun testNestedAtomicThrow() {
-        val exception = captureExceptionsRun {
+        val exception = runBlock {
             expect(1)
             val job = launch(NonCancellable + CoroutineName("outer"), start = CoroutineStart.ATOMIC) {
                 expect(2)
@@ -86,7 +86,7 @@ class JobNestedExceptionsTest : TestBase() {
 
     @Test
     fun testChildThrowsDuringCompletion() {
-        val exceptions = captureMultipleExceptionsRun {
+        val exceptions = runBlockForMultipleExceptions {
             expect(1)
             val job = launch(NonCancellable + CoroutineName("outer"), start = CoroutineStart.ATOMIC) {
                 expect(2)

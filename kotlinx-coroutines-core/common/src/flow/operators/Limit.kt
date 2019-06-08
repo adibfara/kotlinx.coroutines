@@ -8,22 +8,21 @@
 
 package kotlinx.coroutines.flow
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.internal.*
-import kotlin.jvm.*
 import kotlinx.coroutines.flow.unsafeFlow as flow
+import kotlinx.coroutines.*
+import kotlin.jvm.*
 
 /**
  * Returns a flow that ignores first [count] elements.
  * Throws [IllegalArgumentException] if [count] is negative.
  */
-@ExperimentalCoroutinesApi
+@FlowPreview
 public fun <T> Flow<T>.drop(count: Int): Flow<T> {
     require(count >= 0) { "Drop count should be non-negative, but had $count" }
     return flow {
         var skipped = 0
         collect { value ->
-            if (skipped >= count) emit(value) else ++skipped
+            if (++skipped > count) emit(value)
         }
     }
 }
@@ -31,7 +30,7 @@ public fun <T> Flow<T>.drop(count: Int): Flow<T> {
 /**
  * Returns a flow containing all elements except first elements that satisfy the given predicate.
  */
-@ExperimentalCoroutinesApi
+@FlowPreview
 public fun <T> Flow<T>.dropWhile(predicate: suspend (T) -> Boolean): Flow<T> = flow {
     var matched = false
     collect { value ->
@@ -47,9 +46,9 @@ public fun <T> Flow<T>.dropWhile(predicate: suspend (T) -> Boolean): Flow<T> = f
 /**
  * Returns a flow that contains first [count] elements.
  * When [count] elements are consumed, the original flow is cancelled.
- * Throws [IllegalArgumentException] if [count] is not positive.
+ * Throws [IllegalArgumentException] if [count] is negative.
  */
-@ExperimentalCoroutinesApi
+@FlowPreview
 public fun <T> Flow<T>.take(count: Int): Flow<T> {
     require(count > 0) { "Requested element count $count should be positive" }
     return flow {
@@ -58,10 +57,10 @@ public fun <T> Flow<T>.take(count: Int): Flow<T> {
             collect { value ->
                 emit(value)
                 if (++consumed == count) {
-                    throw AbortFlowException()
+                    throw TakeLimitException()
                 }
             }
-        } catch (e: AbortFlowException) {
+        } catch (e: TakeLimitException) {
             // Nothing, bail out
         }
     }
@@ -70,14 +69,19 @@ public fun <T> Flow<T>.take(count: Int): Flow<T> {
 /**
  * Returns a flow that contains first elements satisfying the given [predicate].
  */
-@ExperimentalCoroutinesApi
+@FlowPreview
 public fun <T> Flow<T>.takeWhile(predicate: suspend (T) -> Boolean): Flow<T> = flow {
     try {
         collect { value ->
             if (predicate(value)) emit(value)
-            else throw AbortFlowException()
+            else throw TakeLimitException()
         }
-    } catch (e: AbortFlowException) {
+    } catch (e: TakeLimitException) {
         // Nothing, bail out
     }
+}
+
+private class TakeLimitException : CancellationException("Flow limit is reached, cancelling") {
+    // TODO expect/actual
+    // override fun fillInStackTrace(): Throwable = this
 }

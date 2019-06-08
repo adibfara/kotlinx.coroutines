@@ -1,6 +1,6 @@
 # Module kotlinx-coroutines-core
 
-Core primitives to work with coroutines.
+Core primitives to work with coroutines, available on all platforms.
 
 Coroutine builder functions:
 
@@ -84,9 +84,13 @@ Select expression to perform multiple suspending operations simultaneously until
 
 Low-level primitives for finer-grained control of coroutines.
 
+# Package kotlinx.coroutines.timeunit
+
+Optional time unit support for multiplatform projects.
+
 # Package kotlinx.coroutines.test
 
-Obsolete and deprecated module to test coroutines. Replaced with `kotlinx-coroutines-test` module.
+Components to ease writing unit-tests for code that contains coroutines with delays and timeouts.
 
 <!--- MODULE kotlinx-coroutines-core -->
 <!--- INDEX kotlinx.coroutines -->

@@ -11,6 +11,7 @@ import org.junit.runners.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION") // cancel(cause)
 @RunWith(Parameterized::class)
 class WithContextExceptionHandlingTest(private val mode: Mode) : TestBase() {
     enum class Mode { WITH_CONTEXT, ASYNC_AWAIT }

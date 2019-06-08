@@ -3,10 +3,9 @@
  */
 
 // This file was automatically generated from coroutines-guide.md by Knit tool. Do not edit.
-package kotlinx.coroutines.guide.sync06
+package kotlinx.coroutines.guide.sync01b
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 import kotlin.system.*
 
 suspend fun CoroutineScope.massiveRun(action: suspend () -> Unit) {
@@ -23,15 +22,13 @@ suspend fun CoroutineScope.massiveRun(action: suspend () -> Unit) {
     println("Completed ${n * k} actions in $time ms")    
 }
 
-val mutex = Mutex()
+val mtContext = newFixedThreadPoolContext(2, "mtPool") // explicitly define context with two threads
 var counter = 0
 
 fun main() = runBlocking<Unit> {
 //sampleStart
-    GlobalScope.massiveRun {
-        mutex.withLock {
-            counter++        
-        }
+    CoroutineScope(mtContext).massiveRun { // use it instead of Dispatchers.Default in this sample and below 
+        counter++
     }
     println("Counter = $counter")
 //sampleEnd    

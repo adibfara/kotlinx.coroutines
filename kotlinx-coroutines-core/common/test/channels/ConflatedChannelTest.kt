@@ -31,13 +31,7 @@ class ConflatedChannelTest : TestBase() {
     fun testConflatedClose() = runTest {
         val q = Channel<Int>(Channel.CONFLATED)
         q.send(1)
-        q.close() // shall become closed but do not conflate last sent item yet
-        assertTrue(q.isClosedForSend)
-        assertFalse(q.isClosedForReceive)
-        assertEquals(1, q.receive())
-        // not it is closed for receive, too
-        assertTrue(q.isClosedForSend)
-        assertTrue(q.isClosedForReceive)
+        q.close() // shall conflate sent item and become closed
         assertNull(q.receiveOrNull())
     }
 
@@ -79,7 +73,7 @@ class ConflatedChannelTest : TestBase() {
         q.cancel()
         check(q.isClosedForSend)
         check(q.isClosedForReceive)
-        assertFailsWith<CancellationException> { q.receiveOrNull() }
+        check(q.receiveOrNull() == null)
         finish(2)
     }
 

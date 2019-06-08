@@ -2,9 +2,10 @@
  * Copyright 2016-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package kotlinx.coroutines.debug.junit4
+package junit4
 
 import kotlinx.coroutines.debug.*
+import kotlinx.coroutines.debug.junit4.*
 import org.junit.rules.*
 import org.junit.runner.*
 import org.junit.runners.model.*

@@ -26,36 +26,6 @@ public interface ProducerScope<in E> : CoroutineScope, SendChannel<E> {
 }
 
 /**
- * Suspends the current coroutine until the channel is either [closed][SendChannel.close] or [cancelled][ReceiveChannel.cancel]
- * and invokes the given [block] before resuming the coroutine.
- *
- * Note that when producer channel is cancelled this function resumes with cancellation exception,
- * so putting the code after calling this function would not lead to its execution in case of cancellation.
- * That is why this code takes a lambda parameter.
- *
- * Example of usage:
- * ```
- * val callbackEventsStream = produce {
- *     val disposable = registerChannelInCallback(channel)
- *     awaitClose { disposable.dispose() }
- * }
- * ```
- */
-@ExperimentalCoroutinesApi
-public suspend fun <T> ProducerScope<T>.awaitClose(block: () -> Unit = {}) {
-    check(kotlin.coroutines.coroutineContext[Job] === this) { "awaitClose() can be invoke only from the producer context" }
-    try {
-        suspendCancellableCoroutine<Unit> { cont ->
-            invokeOnClose {
-                cont.resume(Unit)
-            }
-        }
-    } finally {
-        block()
-    }
-}
-
-/**
  * Launches new coroutine to produce a stream of values by sending them to a channel
  * and returns a reference to the coroutine as a [ReceiveChannel]. This resulting
  * object can be used to [receive][ReceiveChannel.receive] elements produced by this coroutine.
@@ -100,16 +70,8 @@ public fun <E> CoroutineScope.produce(
 }
 
 /**
- * This an internal API and should not be used from general code.**
- * onCompletion parameter will be redesigned.
- * If you have to use `onCompletion` operator, please report to https://github.com/Kotlin/kotlinx.coroutines/issues/.
- * As a temporary solution, [invokeOnCompletion][Job.invokeOnCompletion] can be used instead:
- * ```
- * fun <E> ReceiveChannel<E>.myOperator(): ReceiveChannel<E> = GlobalScope.produce(Dispatchers.Unconfined) {
- *     coroutineContext[Job]?.invokeOnCompletion { consumes() }
- * }
- * ```
- * @suppress
+ * @suppress **This an internal API and should not be used from general code.**
+ *           onCompletion parameter will be redesigned.
  */
 @InternalCoroutinesApi
 public fun <E> CoroutineScope.produce(
@@ -126,7 +88,7 @@ public fun <E> CoroutineScope.produce(
     return coroutine
 }
 
-internal open class ProducerCoroutine<E>(
+private class ProducerCoroutine<E>(
     parentContext: CoroutineContext, channel: Channel<E>
 ) : ChannelCoroutine<E>(parentContext, channel, active = true), ProducerScope<E> {
     override val isActive: Boolean

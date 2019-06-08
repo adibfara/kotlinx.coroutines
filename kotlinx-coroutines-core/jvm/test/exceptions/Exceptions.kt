@@ -54,7 +54,7 @@ class CapturingHandler : AbstractCoroutineContextElement(CoroutineExceptionHandl
     }
 }
 
-internal fun captureExceptionsRun(
+internal fun runBlock(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): Throwable {
@@ -63,7 +63,7 @@ internal fun captureExceptionsRun(
     return handler.getException()
 }
 
-internal fun captureMultipleExceptionsRun(
+internal fun runBlockForMultipleExceptions(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): List<Throwable> {

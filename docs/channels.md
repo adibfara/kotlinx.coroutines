@@ -19,7 +19,7 @@ class ChannelsGuideTest {
 
 <!--- TOC -->
 
-* [Channels](#channels)
+* [Channels (experimental)](#channels-experimental)
   * [Channel basics](#channel-basics)
   * [Closing and iteration over channels](#closing-and-iteration-over-channels)
   * [Building channel producers](#building-channel-producers)
@@ -33,10 +33,14 @@ class ChannelsGuideTest {
 
 <!--- END_TOC -->
 
-## Channels
+## Channels (experimental) 
 
 Deferred values provide a convenient way to transfer a single value between coroutines.
 Channels provide a way to transfer a stream of values.
+
+> Channels are an experimental feature of `kotlinx.coroutines`. Their API is expected to 
+evolve in the upcoming updates of the `kotlinx.coroutines` library with potentially
+breaking changes.
 
 ### Channel basics
 

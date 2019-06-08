@@ -15,10 +15,6 @@ class MessageQueueTest {
             assertFalse(scheduled)
             scheduled = true
         }
-
-        override fun reschedule() {
-            schedule()
-        }
     }
 
     inner class Box(val i: Int): Runnable {

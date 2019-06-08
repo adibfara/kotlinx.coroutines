@@ -16,7 +16,7 @@ import kotlin.test.*
 class ParentCancellationTest : TestBase() {
     @Test
     fun testJobChild() = runTest {
-        testParentCancellation(expectUnhandled = false) { fail ->
+        testParentCancellation(expectUnhandled = true) { fail ->
             val child = Job(coroutineContext[Job])
             CoroutineScope(coroutineContext + child).fail()
         }

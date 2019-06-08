@@ -4,13 +4,11 @@
 
 package kotlinx.coroutines.flow.internal
 
-import kotlinx.coroutines.internal.*
 import kotlin.jvm.*
 
-/**
- * This value is used a a surrogate `null` value when needed.
- * It should never leak to the outside world.
- */
-@JvmField
-@SharedImmutable
-internal val NULL = Symbol("NULL")
+internal object NullSurrogate {
+
+    @JvmStatic
+    @Suppress("UNCHECKED_CAST")
+    internal fun <T> unbox(value: Any?): T = if (value === NullSurrogate) null as T else value as T
+}
